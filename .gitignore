@@ -1,0 +1,11 @@
+# environments (the venv lives in ~/.venvs via UV_PROJECT_ENVIRONMENT)
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+
+# regenerable compiler output — committed results live in results/
+out/
+figures-preview/
+bench.log

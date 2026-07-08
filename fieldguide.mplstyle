@@ -1,0 +1,35 @@
+# Field-guide plate styling — palette mirrors drishan.com global.css tokens.
+# Transparent background so figures sit on the site's ink; text outlined to
+# paths (SVGs load via <img>, which can't reach the page's webfonts).
+
+figure.facecolor: none
+axes.facecolor: none
+savefig.facecolor: none
+savefig.transparent: True
+svg.fonttype: path
+
+text.color: d6dbe1
+axes.labelcolor: 969ba6
+axes.edgecolor: 39414f
+axes.linewidth: 0.8
+axes.grid: True
+grid.color: 262b35
+grid.linewidth: 0.6
+axes.axisbelow: True
+
+xtick.color: 7d8593
+ytick.color: 7d8593
+xtick.labelsize: 9
+ytick.labelsize: 9
+axes.labelsize: 10
+axes.titlesize: 11
+legend.fontsize: 9
+
+axes.prop_cycle: cycler('color', ['d2823e', '9b8ee2', '969ba6', 'b56a2c', '5ec6cb'])
+lines.linewidth: 1.8
+lines.markersize: 5.5
+
+legend.frameon: False
+figure.figsize: 7.2, 4.2
+figure.dpi: 100
+font.size: 10
