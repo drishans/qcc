@@ -69,6 +69,51 @@ def test_measure_blocks_fusion():
     assert metrics(extract(m))["gates"] == 2
 
 
+def test_commute_diag_through_cx_control():
+    # the classic: t rides through the control, the cx pair cancels
+    c = _opt_counts("cx q[0],q[1];\nt q[0];\ncx q[0],q[1];\n")
+    assert c["gates"] == 1, c
+    # but on the target, t does NOT commute — nothing may cancel
+    c = _opt_counts("cx q[0],q[1];\nt q[1];\ncx q[0],q[1];\n")
+    assert c["gates"] == 3, c
+
+
+def test_commute_x_through_cx_target():
+    c = _opt_counts("cx q[0],q[1];\nx q[1];\ncx q[0],q[1];\n")
+    assert c["gates"] == 1, c
+    # x on the control does NOT commute
+    c = _opt_counts("cx q[0],q[1];\nx q[0];\ncx q[0],q[1];\n")
+    assert c["gates"] == 3, c
+
+
+def test_commute_diag_through_cz_either_wire():
+    for wire in (0, 1):
+        c = _opt_counts(f"cz q[0],q[1];\nrz(0.4) q[{wire}];\ncz q[0],q[1];\n")
+        assert c["gates"] == 1, (wire, c)
+
+
+def test_rotation_merges_across_cx_control():
+    c = _opt_counts("rz(0.3) q[0];\ncx q[0],q[1];\nrz(0.4) q[0];\n")
+    assert c["by_gate"].get("rz") == 1, c
+
+
+def test_rotation_merges_across_multi_hop_chain():
+    src = (
+        'OPENQASM 3.0;\ninclude "stdgates.inc";\nqubit[3] q;\n'
+        "rz(0.3) q[0];\ncx q[0],q[1];\ncx q[0],q[2];\nrz(0.4) q[0];\n"
+    )
+    from qcc.frontend import parse_qasm3
+    from qcc.ir import extract, metrics
+    from qcc.passes import optimize
+    from qcc.verify import equivalent
+
+    before = extract(parse_qasm3(src))
+    m = optimize(parse_qasm3(src))
+    assert equivalent(before, m)
+    c = metrics(extract(m))
+    assert c["by_gate"].get("rz") == 1 and c["gates"] == 3, c
+
+
 def test_optimize_is_idempotent():
     src = HDR + "h q[0];\nt q[0];\ncx q[0],q[1];\nrz(0.5) q[1];\ncx q[0],q[1];\n"
     m = optimize(parse_qasm3(src))

@@ -12,6 +12,7 @@ from xdsl.dialects.builtin import ModuleOp
 
 from qcc.ir.dialect import verify_linear
 from qcc.passes.cancel_inverses import CancelInversesPass
+from qcc.passes.commute_diagonals import CommuteDiagonalsPass
 from qcc.passes.fuse_1q import FuseSingleQubitPass
 from qcc.passes.merge_rotations import MergeRotationsPass
 
@@ -27,7 +28,14 @@ def optimize(module: ModuleOp, level: int = 1) -> ModuleOp:
     if level <= 0:
         return module
     ctx = Context()
-    passes = [CancelInversesPass(), MergeRotationsPass(), FuseSingleQubitPass()]
+    passes = [
+        CancelInversesPass(),
+        MergeRotationsPass(),
+        CommuteDiagonalsPass(),
+        CancelInversesPass(),
+        MergeRotationsPass(),
+        FuseSingleQubitPass(),
+    ]
     before = _n_ops(module)
     for _ in range(MAX_ITERATIONS):
         for p in passes:
