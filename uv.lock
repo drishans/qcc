@@ -952,6 +952,7 @@ source = { editable = "." }
 dependencies = [
     { name = "cudaq" },
     { name = "matplotlib" },
+    { name = "networkx" },
     { name = "numpy" },
     { name = "openqasm3", extra = ["parser"] },
     { name = "pyqir" },
@@ -969,6 +970,7 @@ dev = [
 requires-dist = [
     { name = "cudaq", specifier = ">=0.15.0" },
     { name = "matplotlib", specifier = ">=3.11.0" },
+    { name = "networkx", specifier = ">=3.6.1" },
     { name = "numpy" },
     { name = "openqasm3", extras = ["parser"] },
     { name = "pyqir" },
