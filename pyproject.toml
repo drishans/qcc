@@ -16,6 +16,7 @@ dependencies = [
     "matplotlib>=3.11.0",
     "cudaq>=0.15.0",
     "networkx>=3.6.1",
+    "qdk>=1.31.0",
 ]
 
 [dependency-groups]

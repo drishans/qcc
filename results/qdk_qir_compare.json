@@ -1,0 +1,508 @@
+{
+  "meta": {
+    "timestamp": "2026-08-21T22:24:55+00:00",
+    "cpu": "AMD Ryzen 9 9950X3D 16-Core Processor",
+    "os": "Linux 6.18.33.1-microsoft-standard-WSL2 (WSL2)",
+    "python": "3.12.3",
+    "versions": {
+      "xdsl": "0.68.0",
+      "openqasm3": "1.0.1",
+      "pyqir": "0.12.5",
+      "qiskit": "2.5.0",
+      "pytket": "2.18.1",
+      "cudaq": "0.15.0",
+      "qdk": "1.31.0",
+      "numpy": "2.5.1"
+    },
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "driver": "610.88"
+  },
+  "params": {
+    "repeats": 5,
+    "timing": "median of full source->QIR compile, both stacks",
+    "metric": "QIR instructions counted by shared parser; measures excluded",
+    "qdk_profile": "TargetProfile.Base",
+    "cross_execution": {
+      "ghz12_support": [
+        "000000000000",
+        "111111111111"
+      ],
+      "passed": true,
+      "shots": 500
+    }
+  },
+  "rows": [
+    {
+      "suite": "ghz",
+      "instance": "n12",
+      "n_qubits": 12,
+      "tool": "qdk-base",
+      "qir_gates": 12,
+      "qir_2q": 11,
+      "by_gate": {
+        "cx": 11,
+        "h": 1
+      },
+      "t_ms": 69.47325599958276
+    },
+    {
+      "suite": "ghz",
+      "instance": "n12",
+      "n_qubits": 12,
+      "tool": "qcc-O0",
+      "qir_gates": 12,
+      "qir_2q": 11,
+      "by_gate": {
+        "cnot": 11,
+        "h": 1
+      },
+      "t_ms": 3.640238000116369
+    },
+    {
+      "suite": "ghz",
+      "instance": "n12",
+      "n_qubits": 12,
+      "tool": "qcc-O1",
+      "qir_gates": 12,
+      "qir_2q": 11,
+      "by_gate": {
+        "cnot": 11,
+        "h": 1
+      },
+      "t_ms": 4.207460000543506
+    },
+    {
+      "suite": "qft",
+      "instance": "n6",
+      "n_qubits": 6,
+      "tool": "qdk-base",
+      "qir_gates": 84,
+      "qir_2q": 33,
+      "by_gate": {
+        "cx": 30,
+        "h": 6,
+        "rz": 45,
+        "swap": 3
+      },
+      "t_ms": 95.709581999472
+    },
+    {
+      "suite": "qft",
+      "instance": "n6",
+      "n_qubits": 6,
+      "tool": "qcc-O0",
+      "qir_gates": 90,
+      "qir_2q": 39,
+      "by_gate": {
+        "cnot": 39,
+        "h": 6,
+        "rz": 45
+      },
+      "t_ms": 12.283764999665436
+    },
+    {
+      "suite": "qft",
+      "instance": "n6",
+      "n_qubits": 6,
+      "tool": "qcc-O1",
+      "qir_gates": 80,
+      "qir_2q": 39,
+      "by_gate": {
+        "cnot": 39,
+        "h": 1,
+        "ry": 5,
+        "rz": 35
+      },
+      "t_ms": 19.581001999540604
+    },
+    {
+      "suite": "qft",
+      "instance": "n10",
+      "n_qubits": 10,
+      "tool": "qdk-base",
+      "qir_gates": 240,
+      "qir_2q": 95,
+      "by_gate": {
+        "cx": 90,
+        "h": 10,
+        "rz": 135,
+        "swap": 5
+      },
+      "t_ms": 187.52011699962168
+    },
+    {
+      "suite": "qft",
+      "instance": "n10",
+      "n_qubits": 10,
+      "tool": "qcc-O0",
+      "qir_gates": 250,
+      "qir_2q": 105,
+      "by_gate": {
+        "cnot": 105,
+        "h": 10,
+        "rz": 135
+      },
+      "t_ms": 30.340627999976277
+    },
+    {
+      "suite": "qft",
+      "instance": "n10",
+      "n_qubits": 10,
+      "tool": "qcc-O1",
+      "qir_gates": 214,
+      "qir_2q": 105,
+      "by_gate": {
+        "cnot": 105,
+        "h": 1,
+        "ry": 9,
+        "rz": 99
+      },
+      "t_ms": 59.43960399963544
+    },
+    {
+      "suite": "qaoa",
+      "instance": "n12p2s11",
+      "n_qubits": 12,
+      "tool": "qdk-base",
+      "qir_gates": 144,
+      "qir_2q": 72,
+      "by_gate": {
+        "cx": 72,
+        "h": 12,
+        "rx": 24,
+        "rz": 36
+      },
+      "t_ms": 77.29236700015463
+    },
+    {
+      "suite": "qaoa",
+      "instance": "n12p2s11",
+      "n_qubits": 12,
+      "tool": "qcc-O0",
+      "qir_gates": 144,
+      "qir_2q": 72,
+      "by_gate": {
+        "cnot": 72,
+        "h": 12,
+        "rx": 24,
+        "rz": 36
+      },
+      "t_ms": 18.185733999416698
+    },
+    {
+      "suite": "qaoa",
+      "instance": "n12p2s11",
+      "n_qubits": 12,
+      "tool": "qcc-O1",
+      "qir_gates": 153,
+      "qir_2q": 72,
+      "by_gate": {
+        "cnot": 72,
+        "h": 12,
+        "rx": 15,
+        "ry": 9,
+        "rz": 45
+      },
+      "t_ms": 24.588682999819866
+    },
+    {
+      "suite": "qaoa",
+      "instance": "n12p2s12",
+      "n_qubits": 12,
+      "tool": "qdk-base",
+      "qir_gates": 144,
+      "qir_2q": 72,
+      "by_gate": {
+        "cx": 72,
+        "h": 12,
+        "rx": 24,
+        "rz": 36
+      },
+      "t_ms": 76.77705300011439
+    },
+    {
+      "suite": "qaoa",
+      "instance": "n12p2s12",
+      "n_qubits": 12,
+      "tool": "qcc-O0",
+      "qir_gates": 144,
+      "qir_2q": 72,
+      "by_gate": {
+        "cnot": 72,
+        "h": 12,
+        "rx": 24,
+        "rz": 36
+      },
+      "t_ms": 18.006088999754866
+    },
+    {
+      "suite": "qaoa",
+      "instance": "n12p2s12",
+      "n_qubits": 12,
+      "tool": "qcc-O1",
+      "qir_gates": 154,
+      "qir_2q": 72,
+      "by_gate": {
+        "cnot": 72,
+        "h": 12,
+        "rx": 14,
+        "ry": 10,
+        "rz": 46
+      },
+      "t_ms": 24.79332599978079
+    },
+    {
+      "suite": "cliffordt",
+      "instance": "n8g400s1",
+      "n_qubits": 8,
+      "tool": "qdk-base",
+      "qir_gates": 320,
+      "qir_2q": 129,
+      "by_gate": {
+        "cx": 69,
+        "cz": 60,
+        "h": 31,
+        "s": 45,
+        "t": 45,
+        "x": 31,
+        "z": 39
+      },
+      "t_ms": 85.09964499990019
+    },
+    {
+      "suite": "cliffordt",
+      "instance": "n8g400s1",
+      "n_qubits": 8,
+      "tool": "qcc-O0",
+      "qir_gates": 320,
+      "qir_2q": 129,
+      "by_gate": {
+        "cnot": 69,
+        "cz": 60,
+        "h": 31,
+        "s": 45,
+        "t": 45,
+        "x": 31,
+        "z": 39
+      },
+      "t_ms": 38.629205999313854
+    },
+    {
+      "suite": "cliffordt",
+      "instance": "n8g400s1",
+      "n_qubits": 8,
+      "tool": "qcc-O1",
+      "qir_gates": 226,
+      "qir_2q": 121,
+      "by_gate": {
+        "cnot": 65,
+        "cz": 56,
+        "h": 6,
+        "ry": 31,
+        "rz": 49,
+        "s": 4,
+        "t": 2,
+        "x": 9,
+        "z": 4
+      },
+      "t_ms": 65.53735999932542
+    },
+    {
+      "suite": "cliffordt",
+      "instance": "n8g400s2",
+      "n_qubits": 8,
+      "tool": "qdk-base",
+      "qir_gates": 305,
+      "qir_2q": 109,
+      "by_gate": {
+        "cx": 57,
+        "cz": 52,
+        "h": 33,
+        "s": 35,
+        "t": 47,
+        "x": 50,
+        "z": 31
+      },
+      "t_ms": 85.37052700012282
+    },
+    {
+      "suite": "cliffordt",
+      "instance": "n8g400s2",
+      "n_qubits": 8,
+      "tool": "qcc-O0",
+      "qir_gates": 305,
+      "qir_2q": 109,
+      "by_gate": {
+        "cnot": 57,
+        "cz": 52,
+        "h": 33,
+        "s": 35,
+        "t": 47,
+        "x": 50,
+        "z": 31
+      },
+      "t_ms": 34.93474100014282
+    },
+    {
+      "suite": "cliffordt",
+      "instance": "n8g400s2",
+      "n_qubits": 8,
+      "tool": "qcc-O1",
+      "qir_gates": 218,
+      "qir_2q": 103,
+      "by_gate": {
+        "cnot": 55,
+        "cz": 48,
+        "h": 1,
+        "ry": 36,
+        "rz": 60,
+        "t": 2,
+        "x": 13,
+        "z": 3
+      },
+      "t_ms": 69.31701299981796
+    },
+    {
+      "suite": "cliffordt",
+      "instance": "n8g400s3",
+      "n_qubits": 8,
+      "tool": "qdk-base",
+      "qir_gates": 307,
+      "qir_2q": 121,
+      "by_gate": {
+        "cx": 65,
+        "cz": 56,
+        "h": 39,
+        "s": 36,
+        "t": 39,
+        "x": 33,
+        "z": 39
+      },
+      "t_ms": 83.77077499972074
+    },
+    {
+      "suite": "cliffordt",
+      "instance": "n8g400s3",
+      "n_qubits": 8,
+      "tool": "qcc-O0",
+      "qir_gates": 307,
+      "qir_2q": 121,
+      "by_gate": {
+        "cnot": 65,
+        "cz": 56,
+        "h": 39,
+        "s": 36,
+        "t": 39,
+        "x": 33,
+        "z": 39
+      },
+      "t_ms": 36.41321200029779
+    },
+    {
+      "suite": "cliffordt",
+      "instance": "n8g400s3",
+      "n_qubits": 8,
+      "tool": "qcc-O1",
+      "qir_gates": 244,
+      "qir_2q": 119,
+      "by_gate": {
+        "cnot": 65,
+        "cz": 54,
+        "h": 8,
+        "ry": 39,
+        "rz": 62,
+        "s": 2,
+        "t": 2,
+        "x": 8,
+        "z": 4
+      },
+      "t_ms": 68.64439200035122
+    },
+    {
+      "suite": "vqe",
+      "instance": "n10r3",
+      "n_qubits": 10,
+      "tool": "qdk-base",
+      "qir_gates": 267,
+      "qir_2q": 27,
+      "by_gate": {
+        "cx": 27,
+        "rx": 80,
+        "rz": 160
+      },
+      "t_ms": 231.23753999971086
+    },
+    {
+      "suite": "vqe",
+      "instance": "n10r3",
+      "n_qubits": 10,
+      "tool": "qcc-O0",
+      "qir_gates": 267,
+      "qir_2q": 27,
+      "by_gate": {
+        "cnot": 27,
+        "rx": 80,
+        "rz": 160
+      },
+      "t_ms": 32.374829999753274
+    },
+    {
+      "suite": "vqe",
+      "instance": "n10r3",
+      "n_qubits": 10,
+      "tool": "qcc-O1",
+      "qir_gates": 130,
+      "qir_2q": 27,
+      "by_gate": {
+        "cnot": 27,
+        "ry": 40,
+        "rz": 63
+      },
+      "t_ms": 41.29274999922927
+    },
+    {
+      "suite": "adder",
+      "instance": "b4",
+      "n_qubits": 10,
+      "tool": "qdk-base",
+      "qir_gates": 113,
+      "qir_2q": 65,
+      "by_gate": {
+        "cx": 65,
+        "h": 16,
+        "t": 32
+      },
+      "t_ms": 70.19600800049375
+    },
+    {
+      "suite": "adder",
+      "instance": "b4",
+      "n_qubits": 10,
+      "tool": "qcc-O0",
+      "qir_gates": 113,
+      "qir_2q": 65,
+      "by_gate": {
+        "cnot": 65,
+        "h": 16,
+        "t": 32
+      },
+      "t_ms": 14.443712999309355
+    },
+    {
+      "suite": "adder",
+      "instance": "b4",
+      "n_qubits": 10,
+      "tool": "qcc-O1",
+      "qir_gates": 109,
+      "qir_2q": 65,
+      "by_gate": {
+        "cnot": 65,
+        "h": 8,
+        "ry": 8,
+        "rz": 12,
+        "t": 16
+      },
+      "t_ms": 22.406137999496423
+    }
+  ]
+}

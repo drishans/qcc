@@ -957,6 +957,7 @@ dependencies = [
     { name = "openqasm3", extra = ["parser"] },
     { name = "pyqir" },
     { name = "pytket" },
+    { name = "qdk" },
     { name = "qiskit" },
     { name = "xdsl" },
 ]
@@ -975,12 +976,30 @@ requires-dist = [
     { name = "openqasm3", extras = ["parser"] },
     { name = "pyqir" },
     { name = "pytket" },
+    { name = "qdk", specifier = ">=1.31.0" },
     { name = "qiskit", specifier = ">=2.5.0" },
     { name = "xdsl" },
 ]
 
 [package.metadata.requires-dev]
 dev = [{ name = "pytest", specifier = ">=8" }]
+
+[[package]]
+name = "qdk"
+version = "1.31.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pyqir" },
+    { name = "qsharp" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4e/57/4c7910475c02b73a713801450abb78be2d7bc08861adf2c4916a98b159ad/qdk-1.31.0-cp310-abi3-macosx_10_12_x86_64.whl", hash = "sha256:cee7a015c4a15bb6f797bead04d86fb21f0a97b5be17bae6fe54aca2fcb3a9d2", size = 6563831, upload-time = "2026-07-31T00:30:00.419Z" },
+    { url = "https://files.pythonhosted.org/packages/b7/05/e7916e3ab0439bee3df31081cf0439e230c4f188e0d7cb5a7e53f9193691/qdk-1.31.0-cp310-abi3-macosx_11_0_arm64.whl", hash = "sha256:3481891de5205af165e85edaef4b0288b00e27f2cb18128691412d8a147cb03e", size = 6180470, upload-time = "2026-07-31T00:30:02.782Z" },
+    { url = "https://files.pythonhosted.org/packages/03/09/721c14a312f4c9d21b94c95caf74d17d42e52778403ee34d435303e7ecda/qdk-1.31.0-cp310-abi3-manylinux_2_35_aarch64.whl", hash = "sha256:31a5938c5f65eeacb228d2520a931018563668f1f23f09200cf3a8569dd556ee", size = 6849350, upload-time = "2026-07-31T00:30:04.569Z" },
+    { url = "https://files.pythonhosted.org/packages/bd/a7/5e6cd8551d6812545111c0707e8963700e3e15aba94fa07446fce5d828fe/qdk-1.31.0-cp310-abi3-manylinux_2_35_x86_64.whl", hash = "sha256:4882f228c72093a97f5e24839b11d899f6c461fc739bd7164170a534a7cad4ef", size = 7462774, upload-time = "2026-07-31T00:30:06.346Z" },
+    { url = "https://files.pythonhosted.org/packages/ee/83/cf47734d90972dc92d2066bd3e2eb4411f00d4b672cf4c09817e27787b51/qdk-1.31.0-cp310-abi3-win_amd64.whl", hash = "sha256:8c5d5dd5849e6c804c1ea91bed030e89b4b790ef7d6bc4bd112e24864402e9e2", size = 7956300, upload-time = "2026-07-31T00:30:08.326Z" },
+    { url = "https://files.pythonhosted.org/packages/63/82/1aab6a7d52719a22f058066107ba6f5fb2b38ee54b251ea91ab0183e2bd6/qdk-1.31.0-cp310-abi3-win_arm64.whl", hash = "sha256:08afd9acd82a4435d338f33356d3581604c5f7e60c91da9c05c95709943f723e", size = 7422665, upload-time = "2026-07-31T00:30:10.255Z" },
+]
 
 [[package]]
 name = "qiskit"
@@ -1003,6 +1022,17 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/75/b9/4dfdfafe83762144a1cf1456eafb3e17052c1b7ad9195c6af30d9899cd28/qiskit-2.5.0-cp310-abi3-manylinux_2_28_s390x.whl", hash = "sha256:4aa04541b78f3a81967ae411733929749fd67ae4bce2d228a9cdcb06e64dc9c7", size = 9512568, upload-time = "2026-07-02T23:31:04.374Z" },
     { url = "https://files.pythonhosted.org/packages/da/a4/78971e41c5ce8bd54f750f82d5ce7313cae821b0730c8fdac9dd8cbaafd7/qiskit-2.5.0-cp310-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:6efe02541f49c97aac2073befd9458a37cfae58a3ee1616db12ee3ee8791eef7", size = 9763212, upload-time = "2026-07-02T20:05:38.61Z" },
     { url = "https://files.pythonhosted.org/packages/08/c1/193fbdfceebec892c7aed59ccbd521dacc1e596780032ba7ba5a138a0a27/qiskit-2.5.0-cp310-abi3-win_amd64.whl", hash = "sha256:f9daa14b6499ec0da4db0eadb57d28ea2a38922cefa158b49723f78c544a27f5", size = 9449710, upload-time = "2026-07-02T20:05:41.156Z" },
+]
+
+[[package]]
+name = "qsharp"
+version = "1.31.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "qdk" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d2/98/94ea86973f41da1f24a4c8048349a91df16e83f8ef3588184559ffbc3b9f/qsharp-1.31.0-py3-none-any.whl", hash = "sha256:55c3b116aa2a14f733b43c41b2a8a3271570fabfdbf8de43de10098f00345cf2", size = 15918, upload-time = "2026-07-31T00:30:11.657Z" },
 ]
 
 [[package]]

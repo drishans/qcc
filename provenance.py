@@ -16,7 +16,7 @@ from pathlib import Path
 
 RESULTS = Path(__file__).parent / "results"
 
-PACKAGES = ("xdsl", "openqasm3", "pyqir", "qiskit", "pytket", "cudaq", "numpy")
+PACKAGES = ("xdsl", "openqasm3", "pyqir", "qiskit", "pytket", "cudaq", "qdk", "numpy")
 
 
 def _cpu_model() -> str:
