@@ -3,7 +3,9 @@
 The QIR base-profile QIS has no swap/sx/p/u3, so those lower here:
 swap → 3 cx, sx → rx(π/2), p → rz (both up to global phase — the
 compiler's standing invariant), u3(θ,φ,λ) → rz(λ)·ry(θ)·rz(φ) applied in
-that order. Barriers are compile-time fences and vanish at this boundary.
+that order, with near-zero angles elided so a u3 that is really one
+rotation costs one instruction, not three. Barriers are compile-time
+fences and vanish at this boundary.
 """
 
 from __future__ import annotations
@@ -12,6 +14,7 @@ import math
 
 import pyqir
 
+from qcc import gates
 from qcc.ir.tape import Tape
 
 
@@ -46,9 +49,12 @@ def emit_qir(tape: Tape, name: str = "qcc") -> str:
             qis.rx(math.pi / 2, q[w[0]])
         elif ins.name == "u3":
             theta, phi, lam = ins.params
-            qis.rz(lam, q[w[0]])
-            qis.ry(theta, q[w[0]])
-            qis.rz(phi, q[w[0]])
+            if not gates.is_zero_rotation(lam):
+                qis.rz(lam, q[w[0]])
+            if not gates.is_zero_rotation(theta):
+                qis.ry(theta, q[w[0]])
+            if not gates.is_zero_rotation(phi):
+                qis.rz(phi, q[w[0]])
         elif ins.name == "cx":
             qis.cx(q[w[0]], q[w[1]])
         elif ins.name == "cz":

@@ -39,6 +39,17 @@ def test_qir_lowers_whole_gate_set():
     assert ir.count("call void @__quantum__qis__cnot__body") == 3  # swap = 3 cx
 
 
+def test_qir_u3_elides_zero_angles():
+    # a u3 that is really one rotation must cost one QIR instruction
+    src = HDR + "u3(0.5, 0.0, 0.0) q[0];\nu3(0.0, 0.3, 0.4) q[1];\n"
+    ir = emit_qir(extract(parse_qasm3(src)))
+    assert ir.count("call void @__quantum__qis__ry__body") == 1
+    assert ir.count("call void @__quantum__qis__rz__body") == 2  # 0.3 and 0.4
+    src = HDR + "u3(0.1, 0.2, 0.3) q[0];\n"
+    ir = emit_qir(extract(parse_qasm3(src)))
+    assert ir.count("call void @__quantum__qis__r") == 3  # full case unchanged
+
+
 def test_qasm3_roundtrip_random(rng: random.Random):
     for _ in range(10):
         m = random_circuit(rng, 4, 60).finish()
