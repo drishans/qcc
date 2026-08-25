@@ -1,6 +1,6 @@
 {
   "meta": {
-    "timestamp": "2026-07-08T05:20:58+00:00",
+    "timestamp": "2026-08-25T10:17:52+00:00",
     "cpu": "AMD Ryzen 9 9950X3D 16-Core Processor",
     "os": "Linux 6.18.33.1-microsoft-standard-WSL2 (WSL2)",
     "python": "3.12.3",
@@ -11,10 +11,11 @@
       "qiskit": "2.5.0",
       "pytket": "2.18.1",
       "cudaq": "0.15.0",
+      "qdk": "1.31.0",
       "numpy": "2.5.1"
     },
     "gpu": "NVIDIA GeForce RTX 5090",
-    "driver": "610.74"
+    "driver": "610.88"
   },
   "params": {
     "repeats": 5,
@@ -43,7 +44,18 @@
       "gates": 12,
       "gates_2q": 11,
       "depth": 12,
-      "t_ms": 0.8263320000025942,
+      "t_ms": 0.6672900053672493,
+      "verified": true
+    },
+    {
+      "suite": "ghz",
+      "instance": "n12",
+      "n_qubits": 12,
+      "tool": "qcc-O2",
+      "gates": 12,
+      "gates_2q": 11,
+      "depth": 12,
+      "t_ms": 4.7175639774650335,
       "verified": true
     },
     {
@@ -54,7 +66,7 @@
       "gates": 12,
       "gates_2q": 11,
       "depth": 12,
-      "t_ms": 2.3218000000042593,
+      "t_ms": 1.6716709942556918,
       "verified": null
     },
     {
@@ -65,7 +77,7 @@
       "gates": 12,
       "gates_2q": 11,
       "depth": 12,
-      "t_ms": 6.661124000004293,
+      "t_ms": 5.740351974964142,
       "verified": null
     },
     {
@@ -76,7 +88,7 @@
       "gates": 12,
       "gates_2q": 11,
       "depth": 12,
-      "t_ms": 8.467816000006678,
+      "t_ms": 7.132837956305593,
       "verified": null
     },
     {
@@ -87,7 +99,7 @@
       "gates": 12,
       "gates_2q": 11,
       "depth": 12,
-      "t_ms": 85.05897199998458,
+      "t_ms": 68.13416798831895,
       "verified": null
     },
     {
@@ -109,7 +121,18 @@
       "gates": 68,
       "gates_2q": 33,
       "depth": 35,
-      "t_ms": 9.577377999988812,
+      "t_ms": 7.373749976977706,
+      "verified": true
+    },
+    {
+      "suite": "qft",
+      "instance": "n6",
+      "n_qubits": 6,
+      "tool": "qcc-O2",
+      "gates": 68,
+      "gates_2q": 33,
+      "depth": 35,
+      "t_ms": 17.51980697736144,
       "verified": true
     },
     {
@@ -120,7 +143,7 @@
       "gates": 74,
       "gates_2q": 33,
       "depth": 38,
-      "t_ms": 7.298359999992954,
+      "t_ms": 6.144595972727984,
       "verified": null
     },
     {
@@ -131,7 +154,7 @@
       "gates": 61,
       "gates_2q": 30,
       "depth": 33,
-      "t_ms": 11.18481299999985,
+      "t_ms": 9.301779035013169,
       "verified": null
     },
     {
@@ -142,7 +165,7 @@
       "gates": 61,
       "gates_2q": 30,
       "depth": 33,
-      "t_ms": 12.016880000004448,
+      "t_ms": 9.678937960416079,
       "verified": null
     },
     {
@@ -153,7 +176,7 @@
       "gates": 61,
       "gates_2q": 30,
       "depth": 33,
-      "t_ms": 169.5099540000058,
+      "t_ms": 132.31596496189013,
       "verified": null
     },
     {
@@ -175,7 +198,18 @@
       "gates": 194,
       "gates_2q": 95,
       "depth": 63,
-      "t_ms": 35.8666909999954,
+      "t_ms": 28.269870032090694,
+      "verified": true
+    },
+    {
+      "suite": "qft",
+      "instance": "n10",
+      "n_qubits": 10,
+      "tool": "qcc-O2",
+      "gates": 194,
+      "gates_2q": 95,
+      "depth": 63,
+      "t_ms": 54.11631998140365,
       "verified": true
     },
     {
@@ -186,7 +220,7 @@
       "gates": 222,
       "gates_2q": 95,
       "depth": 70,
-      "t_ms": 8.460995000007188,
+      "t_ms": 7.650292012840509,
       "verified": null
     },
     {
@@ -197,7 +231,7 @@
       "gates": 181,
       "gates_2q": 90,
       "depth": 61,
-      "t_ms": 16.36252400001581,
+      "t_ms": 14.190356014296412,
       "verified": null
     },
     {
@@ -208,7 +242,7 @@
       "gates": 181,
       "gates_2q": 90,
       "depth": 61,
-      "t_ms": 19.371487000000798,
+      "t_ms": 15.740177012048662,
       "verified": null
     },
     {
@@ -219,7 +253,7 @@
       "gates": 181,
       "gates_2q": 90,
       "depth": 61,
-      "t_ms": 527.8839270000049,
+      "t_ms": 416.6839550016448,
       "verified": null
     },
     {
@@ -241,7 +275,18 @@
       "gates": 135,
       "gates_2q": 72,
       "depth": 35,
-      "t_ms": 8.277859000003218,
+      "t_ms": 6.9769700057804585,
+      "verified": true
+    },
+    {
+      "suite": "qaoa",
+      "instance": "n12p2s11",
+      "n_qubits": 12,
+      "tool": "qcc-O2",
+      "gates": 135,
+      "gates_2q": 72,
+      "depth": 35,
+      "t_ms": 26.227831025607884,
       "verified": true
     },
     {
@@ -252,7 +297,7 @@
       "gates": 144,
       "gates_2q": 72,
       "depth": 36,
-      "t_ms": 4.993780999996034,
+      "t_ms": 4.313829995226115,
       "verified": null
     },
     {
@@ -263,7 +308,7 @@
       "gates": 144,
       "gates_2q": 72,
       "depth": 36,
-      "t_ms": 10.558260000010478,
+      "t_ms": 9.38047602539882,
       "verified": null
     },
     {
@@ -274,7 +319,7 @@
       "gates": 144,
       "gates_2q": 72,
       "depth": 36,
-      "t_ms": 19.199470999978985,
+      "t_ms": 15.236661012750119,
       "verified": null
     },
     {
@@ -285,7 +330,7 @@
       "gates": 138,
       "gates_2q": 72,
       "depth": 36,
-      "t_ms": 425.93610000000126,
+      "t_ms": 339.71976197790354,
       "verified": null
     },
     {
@@ -307,7 +352,18 @@
       "gates": 134,
       "gates_2q": 72,
       "depth": 59,
-      "t_ms": 8.507870000016737,
+      "t_ms": 6.608836003579199,
+      "verified": true
+    },
+    {
+      "suite": "qaoa",
+      "instance": "n12p2s12",
+      "n_qubits": 12,
+      "tool": "qcc-O2",
+      "gates": 134,
+      "gates_2q": 72,
+      "depth": 59,
+      "t_ms": 25.346765003632754,
       "verified": true
     },
     {
@@ -318,7 +374,7 @@
       "gates": 144,
       "gates_2q": 72,
       "depth": 60,
-      "t_ms": 5.2021980000063195,
+      "t_ms": 4.362409992609173,
       "verified": null
     },
     {
@@ -329,7 +385,7 @@
       "gates": 144,
       "gates_2q": 72,
       "depth": 60,
-      "t_ms": 12.064817999998922,
+      "t_ms": 9.409985970705748,
       "verified": null
     },
     {
@@ -340,7 +396,7 @@
       "gates": 144,
       "gates_2q": 72,
       "depth": 60,
-      "t_ms": 17.796394000015425,
+      "t_ms": 15.386965998914093,
       "verified": null
     },
     {
@@ -351,7 +407,7 @@
       "gates": 140,
       "gates_2q": 72,
       "depth": 60,
-      "t_ms": 429.21836700000426,
+      "t_ms": 349.64862099150196,
       "verified": null
     },
     {
@@ -373,7 +429,18 @@
       "gates": 201,
       "gates_2q": 121,
       "depth": 85,
-      "t_ms": 37.7199419999954,
+      "t_ms": 30.388643965125084,
+      "verified": true
+    },
+    {
+      "suite": "cliffordt",
+      "instance": "n8g400s1",
+      "n_qubits": 8,
+      "tool": "qcc-O2",
+      "gates": 204,
+      "gates_2q": 118,
+      "depth": 83,
+      "t_ms": 128.62098100595176,
       "verified": true
     },
     {
@@ -384,7 +451,7 @@
       "gates": 251,
       "gates_2q": 125,
       "depth": 96,
-      "t_ms": 8.782227000011744,
+      "t_ms": 7.554562005680054,
       "verified": null
     },
     {
@@ -395,7 +462,7 @@
       "gates": 216,
       "gates_2q": 119,
       "depth": 85,
-      "t_ms": 20.10845399999539,
+      "t_ms": 17.139715026132762,
       "verified": null
     },
     {
@@ -406,7 +473,7 @@
       "gates": 216,
       "gates_2q": 119,
       "depth": 85,
-      "t_ms": 22.03475199999616,
+      "t_ms": 19.582558947149664,
       "verified": null
     },
     {
@@ -417,7 +484,7 @@
       "gates": 210,
       "gates_2q": 95,
       "depth": 82,
-      "t_ms": 1113.685621000002,
+      "t_ms": 911.7724769748747,
       "verified": null
     },
     {
@@ -439,7 +506,18 @@
       "gates": 178,
       "gates_2q": 103,
       "depth": 78,
-      "t_ms": 42.753233000013324,
+      "t_ms": 35.32051999354735,
+      "verified": true
+    },
+    {
+      "suite": "cliffordt",
+      "instance": "n8g400s2",
+      "n_qubits": 8,
+      "tool": "qcc-O2",
+      "gates": 181,
+      "gates_2q": 97,
+      "depth": 76,
+      "t_ms": 121.6482919990085,
       "verified": true
     },
     {
@@ -450,7 +528,7 @@
       "gates": 218,
       "gates_2q": 105,
       "depth": 86,
-      "t_ms": 8.521016000003101,
+      "t_ms": 7.371384999714792,
       "verified": null
     },
     {
@@ -461,7 +539,7 @@
       "gates": 198,
       "gates_2q": 101,
       "depth": 80,
-      "t_ms": 18.782375000000684,
+      "t_ms": 16.702563036233187,
       "verified": null
     },
     {
@@ -472,7 +550,7 @@
       "gates": 198,
       "gates_2q": 101,
       "depth": 80,
-      "t_ms": 22.890318000008847,
+      "t_ms": 19.930799026042223,
       "verified": null
     },
     {
@@ -483,7 +561,7 @@
       "gates": 191,
       "gates_2q": 81,
       "depth": 81,
-      "t_ms": 920.063190999997,
+      "t_ms": 768.2614339864813,
       "verified": null
     },
     {
@@ -505,7 +583,18 @@
       "gates": 205,
       "gates_2q": 119,
       "depth": 86,
-      "t_ms": 41.7917540000019,
+      "t_ms": 31.76262998022139,
+      "verified": true
+    },
+    {
+      "suite": "cliffordt",
+      "instance": "n8g400s3",
+      "n_qubits": 8,
+      "tool": "qcc-O2",
+      "gates": 203,
+      "gates_2q": 114,
+      "depth": 85,
+      "t_ms": 130.40149700827897,
       "verified": true
     },
     {
@@ -516,7 +605,7 @@
       "gates": 250,
       "gates_2q": 121,
       "depth": 96,
-      "t_ms": 8.802938000002314,
+      "t_ms": 7.980997033882886,
       "verified": null
     },
     {
@@ -527,7 +616,7 @@
       "gates": 220,
       "gates_2q": 116,
       "depth": 85,
-      "t_ms": 20.834731000007878,
+      "t_ms": 17.21601199824363,
       "verified": null
     },
     {
@@ -538,7 +627,7 @@
       "gates": 220,
       "gates_2q": 116,
       "depth": 85,
-      "t_ms": 24.12035000000401,
+      "t_ms": 19.57605400821194,
       "verified": null
     },
     {
@@ -549,7 +638,7 @@
       "gates": 219,
       "gates_2q": 95,
       "depth": 90,
-      "t_ms": 1082.34181200001,
+      "t_ms": 824.2968710255809,
       "verified": null
     },
     {
@@ -571,7 +660,18 @@
       "gates": 67,
       "gates_2q": 27,
       "depth": 17,
-      "t_ms": 11.764970999990965,
+      "t_ms": 9.340216987766325,
+      "verified": true
+    },
+    {
+      "suite": "vqe",
+      "instance": "n10r3",
+      "n_qubits": 10,
+      "tool": "qcc-O2",
+      "gates": 67,
+      "gates_2q": 27,
+      "depth": 17,
+      "t_ms": 20.272669033147395,
       "verified": true
     },
     {
@@ -582,7 +682,7 @@
       "gates": 67,
       "gates_2q": 27,
       "depth": 17,
-      "t_ms": 7.148142999994889,
+      "t_ms": 5.362224008422345,
       "verified": null
     },
     {
@@ -593,7 +693,7 @@
       "gates": 67,
       "gates_2q": 27,
       "depth": 17,
-      "t_ms": 13.076089000009006,
+      "t_ms": 10.652304044924676,
       "verified": null
     },
     {
@@ -604,7 +704,7 @@
       "gates": 67,
       "gates_2q": 27,
       "depth": 17,
-      "t_ms": 14.743269999996755,
+      "t_ms": 12.685308000072837,
       "verified": null
     },
     {
@@ -615,7 +715,7 @@
       "gates": 91,
       "gates_2q": 27,
       "depth": 27,
-      "t_ms": 384.0772460000039,
+      "t_ms": 306.31462699966505,
       "verified": null
     },
     {
@@ -637,7 +737,18 @@
       "gates": 125,
       "gates_2q": 65,
       "depth": 94,
-      "t_ms": 8.622632999987445,
+      "t_ms": 6.834450992755592,
+      "verified": true
+    },
+    {
+      "suite": "adder",
+      "instance": "b4",
+      "n_qubits": 10,
+      "tool": "qcc-O2",
+      "gates": 125,
+      "gates_2q": 65,
+      "depth": 94,
+      "t_ms": 30.801301007159054,
       "verified": true
     },
     {
@@ -648,7 +759,7 @@
       "gates": 129,
       "gates_2q": 65,
       "depth": 94,
-      "t_ms": 7.323764000005895,
+      "t_ms": 6.314992962870747,
       "verified": null
     },
     {
@@ -659,7 +770,7 @@
       "gates": 129,
       "gates_2q": 65,
       "depth": 94,
-      "t_ms": 18.16771999997968,
+      "t_ms": 15.004478977061808,
       "verified": null
     },
     {
@@ -670,7 +781,7 @@
       "gates": 129,
       "gates_2q": 65,
       "depth": 94,
-      "t_ms": 21.354924999997138,
+      "t_ms": 17.54393195733428,
       "verified": null
     },
     {
@@ -681,7 +792,7 @@
       "gates": 132,
       "gates_2q": 61,
       "depth": 98,
-      "t_ms": 267.1730939999861,
+      "t_ms": 216.07813698938116,
       "verified": null
     }
   ]
