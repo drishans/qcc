@@ -87,7 +87,7 @@ def main(argv: list[str] | None = None) -> int:
 
     c = sub.add_parser("compile", help="compile OpenQASM 3 to mlir/qir/qasm3")
     c.add_argument("input")
-    c.add_argument("-O", dest="opt_level", type=int, default=1, choices=(0, 1))
+    c.add_argument("-O", dest="opt_level", type=int, default=1, choices=(0, 1, 2))
     c.add_argument("--emit", choices=("mlir", "qir", "qasm3"), default="mlir")
     c.add_argument("-o", "--output")
     c.add_argument("--stats", action="store_true", help="print gate metrics to stderr")
@@ -96,7 +96,7 @@ def main(argv: list[str] | None = None) -> int:
 
     r = sub.add_parser("run", help="execute on CUDA-Q")
     r.add_argument("input")
-    r.add_argument("-O", dest="opt_level", type=int, default=1, choices=(0, 1))
+    r.add_argument("-O", dest="opt_level", type=int, default=1, choices=(0, 1, 2))
     r.add_argument("--shots", type=int, default=1000)
     r.set_defaults(fn=cmd_run)
 

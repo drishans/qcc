@@ -1,0 +1,9 @@
+qcc
+
+Portions of src/qcc/synthesis/two_qubit.py are adapted from Cirq 1.6.1:
+  https://github.com/quantumlib/Cirq
+Copyright 2018 The Cirq Developers.
+Licensed under the Apache License, Version 2.0.
+
+The adapted code implements magic-basis KAK canonicalization and stable
+special-orthogonal bidiagonalization. It has been modified for qcc.
