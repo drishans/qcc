@@ -18,6 +18,7 @@ OpenQASM 3 ──parse──▶ quantum dialect ──rewrites──▶ QIR (pyq
                                 │ merge rotations      ▼
                                 │ commute-and-cancel  GPU execution
                                 │ fuse 1q runs → u3
+                                │ KAK 2q blocks (O2)
                                 ▼
                           verified equivalent (numpy reference sim)
 ```
@@ -37,7 +38,7 @@ execution wants an NVIDIA GPU but falls back to CPU simulation.
 # venv outside the repo if the repo lives on /mnt/c (NTFS venvs are slow)
 export UV_PROJECT_ENVIRONMENT=$HOME/.venvs/qcc
 uv sync
-uv run qcc compile examples/redundant.qasm --stats --verify   # watch it shrink
+uv run qcc compile examples/redundant.qasm -O2 --stats --verify  # include KAK
 uv run qcc compile examples/bell.qasm --emit qir              # the artifact
 uv run qcc run examples/bell.qasm --shots 2000                # CUDA-Q, GPU if present
 ```
@@ -48,7 +49,8 @@ uv run qcc run examples/bell.qasm --shots 2000                # CUDA-Q, GPU if p
 | --- | --- |
 | `src/qcc/ir/` | the dialect: qubit type, gate ops, linearity verifier, metrics |
 | `src/qcc/frontend/` | OpenQASM 3 → dialect (subset + gate-def expansion; clear errors otherwise) |
-| `src/qcc/passes/` | the optimizer: cancellation, rotation merging, commutation pushing, 1q fusion |
+| `src/qcc/passes/` | the optimizer: cancellation, rotation merging, commutation, 1q fusion, KAK 2q resynthesis |
+| `src/qcc/synthesis/` | independent NumPy KAK/Weyl decomposition and exact 0–3 CX synthesis |
 | `src/qcc/backend/` | QIR emission (pyqir), CUDA-Q execution, qasm3 output, reference simulator |
 | `tests/` | unit tests + differential testing (random circuits, state equivalence) |
 | `bench/` | the harness: qcc vs Qiskit O0–O3 vs pytket on generated suites |
@@ -63,26 +65,31 @@ pytket runs `FullPeepholeOptimise`. Timings are the median of 5 runs of
 the optimization call alone. Total gates surviving, from
 `results/compile_bench.json`:
 
-| suite | input | qcc -O1 | qiskit O1 | qiskit O2/O3 | tket |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| ghz n12 | 12 | 12 | 12 | 12 | 12 |
-| qft n6 | 84 | **68** | 74 | 61 | 61 |
-| qft n10 | 240 | **194** | 222 | 181 | 181 |
-| qaoa n12 p2 (s11) | 144 | **135** | 144 | 144 | 138 |
-| qaoa n12 p2 (s12) | 144 | **134** | 144 | 144 | 140 |
-| clifford+T n8 (s1) | 400 | **201** | 251 | 216 | 210 |
-| clifford+T n8 (s2) | 400 | **178** | 218 | 198 | 191 |
-| clifford+T n8 (s3) | 400 | **205** | 250 | 220 | 219 |
-| vqe su2 n10 r3 | 267 | **67** | 67 | 67 | 91 |
-| adder b4 | 137 | **125** | 129 | 129 | 132 |
+| suite | input | qcc -O1 | qcc -O2 | qiskit O1 | qiskit O2/O3 | tket |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| ghz n12 | 12 | 12 | 12 | 12 | 12 | 12 |
+| qft n6 | 84 | 68 | 68 | 74 | 61 | 61 |
+| qft n10 | 240 | 194 | 194 | 222 | 181 | 181 |
+| qaoa n12 p2 (s11) | 144 | 135 | 135 | 144 | 144 | 138 |
+| qaoa n12 p2 (s12) | 144 | 134 | 134 | 144 | 144 | 140 |
+| clifford+T n8 (s1) | 400 | **201** | 204 | 251 | 216 | 210 |
+| clifford+T n8 (s2) | 400 | **178** | 181 | 218 | 198 | 191 |
+| clifford+T n8 (s3) | 400 | 205 | **203** | 250 | 220 | 219 |
+| vqe su2 n10 r3 | 267 | **67** | **67** | 67 | 67 | 91 |
+| adder b4 | 137 | **125** | **125** | 129 | 129 | 132 |
 
-Four local rewrite families match or beat qiskit O2/O3 on total gates
-everywhere except QFT, at a fraction of tket's compile time (roughly
-1–40 ms per circuit here vs 90–1100 ms). The honest flip side: this
-pipeline never touches 2q structure. tket's Clifford resynthesis removes
-~20% of 2q gates on the random Clifford+T suite and qiskit O2+ wins QFT
-via 2q-block collection + resynthesis. That gap — `KAK`/block
-resynthesis — is precisely the next pass this compiler doesn't have.
+O2 adds pair-block collection and KAK resynthesis. Across the suite it leaves
+total two-qubit count at 704, one gate from qiskit O2/O3's 703, while retaining
+the lower total-gate count (1323 vs 1372). On all three random Clifford+T seeds
+it beats qiskit O2's entangler count: 118 vs 119, 97 vs 101, and 114 vs 116.
+The trade is more local gates on two seeds because the acceptance order values
+2q gates first. Median optimization time is 28.5 ms for qcc O2, 12.4 ms for
+qiskit O2, and 344.7 ms for pytket.
+
+The honest remaining gap is broader circuit restructuring. QFT's final swaps
+and one-off controlled phases do not form profitable same-pair KAK blocks, so
+O2 leaves both QFT rows unchanged; pytket still reaches 634 two-qubit gates in
+aggregate by applying a wider repertoire of transforms.
 
 ## And the Q# stack?
 
@@ -131,4 +138,7 @@ uv run python figures.py --out /path/to/figures
 
 ## License
 
-MIT. The prose of the tutorial series is CC BY 4.0 on the site.
+Original qcc code is MIT. The simultaneous-diagonalization routine used by
+the KAK decomposition is adapted from Cirq 1.6.1 under Apache-2.0; see
+`NOTICE` and `LICENSES/Apache-2.0.txt`. The prose of the tutorial series is
+CC BY 4.0 on the site.

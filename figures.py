@@ -18,7 +18,8 @@ SIGNAL, VIOLET, DIM, SIGNAL2, TEAL = "#d2823e", "#9b8ee2", "#969ba6", "#b56a2c",
 SILVER, MID = "#d6dbe1", "#7d8593"
 
 TOOLS = [  # (row key, label, color, marker)
-    ("qcc-O1", "qcc -O1", SIGNAL, "o"),
+    ("qcc-O1", "qcc -O1", SIGNAL2, "o"),
+    ("qcc-O2", "qcc -O2 (KAK)", SIGNAL, "P"),
     ("qiskit-O1", "qiskit O1", MID, "s"),
     ("qiskit-O3", "qiskit O2/O3", VIOLET, "D"),
     ("tket-full", "tket FullPeephole", TEAL, "^"),
@@ -87,7 +88,7 @@ def fig_gate_reduction(rows, out):
 def fig_two_qubit(rows, out):
     _dotplot(
         rows, out, "two-qubit-counts", "gates_2q",
-        "2q gates: peephole passes keep them, tket resynthesizes them away",
+        "2q gates: KAK closes most of the Qiskit O2 gap",
         "2q gates remaining (% of input)",
     )
 
@@ -109,6 +110,35 @@ def fig_compile_times(rows, out):
     save(fig, out, "compile-times")
 
 
+def fig_kak_delta(rows, out):
+    """Absolute O1-to-O2 two-qubit change, including unchanged suites."""
+    instances = _instances(rows)
+    ys = list(range(len(instances)))
+    fig, ax = plt.subplots(figsize=(7.2, 5.0))
+    for y, (suite, instance) in zip(ys, instances):
+        o1 = _cell(rows, suite, instance, "qcc-O1")["gates_2q"]
+        o2 = _cell(rows, suite, instance, "qcc-O2")["gates_2q"]
+        color = SIGNAL if o2 < o1 else DIM
+        ax.plot([o2, o1], [y, y], color=color, lw=2, alpha=0.8, zorder=2)
+        ax.plot(o1, y, "o", color=SIGNAL2, ms=6, zorder=3)
+        ax.plot(o2, y, "P", color=color, ms=7, zorder=4)
+        if o2 < o1:
+            ax.text(
+                o2 - 1.2,
+                y,
+                f"−{o1-o2}",
+                ha="right",
+                va="center",
+                color=SIGNAL,
+                fontsize=9,
+            )
+    ax.set_yticks(ys, [f"{s}/{i}" for s, i in instances])
+    ax.invert_yaxis()
+    ax.set_xlabel("two-qubit gates — circle = O1, cross = O2/KAK")
+    ax.set_title("KAK pays where the same pair interacts repeatedly")
+    save(fig, out, "kak-two-qubit-reduction")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, default=HERE / "figures-preview")
@@ -119,6 +149,7 @@ def main():
     fig_gate_reduction(rows, args.out)
     fig_two_qubit(rows, args.out)
     fig_compile_times(rows, args.out)
+    fig_kak_delta(rows, args.out)
 
 
 if __name__ == "__main__":
