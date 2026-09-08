@@ -65,3 +65,35 @@ class CircuitBuilder:
         self.block.add_op(ReturnOp())
         func = FuncOp("main", ([], []), Region(self.block))
         return ModuleOp([func])
+
+
+def build_from_tape(tape) -> ModuleOp:
+    """Rebuild a tape as fresh, dominance-correct qubit SSA."""
+    builder = CircuitBuilder(tape.n_qubits)
+    for ins in tape.instrs:
+        if ins.name == "barrier":
+            builder.barrier(*ins.qubits)
+        elif ins.name == "measure":
+            assert ins.cbit is not None
+            builder.measure(ins.qubits[0], ins.cbit)
+        else:
+            builder.gate(ins.name, *ins.qubits, params=ins.params)
+    return builder.finish()
+
+
+def replace_main_from_tape(module: ModuleOp, tape) -> None:
+    """Atomically replace ``@main`` with a fresh SSA graph for ``tape``.
+
+    KAK rewrites both wires of a region at once. Rebuilding the function makes
+    every frontier and dominance relation explicit, instead of performing a
+    fragile sequence of local two-result rewires.
+    """
+    from xdsl.rewriter import Rewriter
+
+    from qcc.ir.tape import main_func
+
+    old_func = main_func(module)
+    replacement_module = build_from_tape(tape)
+    new_func = main_func(replacement_module)
+    new_func.detach()
+    Rewriter.replace_op(old_func, new_func, [])

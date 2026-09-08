@@ -75,13 +75,13 @@ def _timed(fn):
     return result, statistics.median(times)
 
 
-def run_qcc(src3: str) -> dict:
+def run_qcc(src3: str, level: int) -> dict:
     before_tape = extract(parse_qasm3(src3))
 
     def compile_once():
         m = parse_qasm3(src3)  # fresh IR each repeat; only optimize is timed
         t0 = time.perf_counter()
-        optimize(m)
+        optimize(m, level)
         dt = (time.perf_counter() - t0) * 1000
         return m, dt
 
@@ -133,7 +133,8 @@ def main() -> None:
         print(f"[{suite_name}/{instance}] input: {base['gates']} gates")
 
         for tool, res in (
-            ("qcc-O1", run_qcc(src3)),
+            ("qcc-O1", run_qcc(src3, 1)),
+            ("qcc-O2", run_qcc(src3, 2)),
             ("qiskit-O1", run_qiskit(qc, 1)),
             ("qiskit-O2", run_qiskit(qc, 2)),
             ("qiskit-O3", run_qiskit(qc, 3)),
