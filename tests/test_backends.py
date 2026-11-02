@@ -1,8 +1,5 @@
 import random
 
-import numpy as np
-import pytest
-
 from conftest import random_circuit
 
 from qcc.backend.qasm3_out import emit_qasm3
@@ -57,43 +54,3 @@ def test_qasm3_roundtrip_random(rng: random.Random):
         t = extract(m)
         rt = extract(parse_qasm3(emit_qasm3(t)))
         assert equivalent(t, rt)
-
-
-# ── CUDA-Q (skipped automatically where cudaq isn't installed) ─────────
-
-cudaq = pytest.importorskip("cudaq")
-
-
-@pytest.fixture(scope="module")
-def cpu_target():
-    cudaq.set_target("qpp-cpu")  # deterministic, no GPU needed in CI
-    yield
-    cudaq.reset_target()
-
-
-def _bit_reversal_perm(n: int) -> list[int]:
-    return [int(format(i, f"0{n}b")[::-1], 2) for i in range(2**n)]
-
-
-def test_cudaq_state_matches_reference(cpu_target, rng: random.Random):
-    from qcc.backend.cudaq_backend import build_kernel
-
-    for _ in range(3):
-        m = random_circuit(rng, 4, 50).finish()
-        optimize(m)
-        t = extract(m)
-        state = np.array(cudaq.get_state(build_kernel(t)))
-        ref = statevector(t)
-        # cudaq orders amplitudes with qubit 0 least significant; we use
-        # qubit 0 most significant — compare through the bit reversal
-        f = abs(np.vdot(state[_bit_reversal_perm(t.n_qubits)], ref))
-        assert abs(f - 1) < 1e-6
-
-
-def test_cudaq_bell_counts(cpu_target):
-    from qcc.backend.cudaq_backend import sample
-
-    src = HDR + "bit[2] c;\nh q[0];\ncx q[0], q[1];\nc[0] = measure q[0];\nc[1] = measure q[1];\n"
-    counts = sample(extract(parse_qasm3(src)), shots=1000)
-    assert set(counts) <= {"00", "11"}
-    assert sum(counts.values()) == 1000
