@@ -950,39 +950,50 @@ name = "qcc"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "cudaq" },
-    { name = "matplotlib" },
-    { name = "networkx" },
     { name = "numpy" },
     { name = "openqasm3", extra = ["parser"] },
     { name = "pyqir" },
+    { name = "xdsl" },
+]
+
+[package.optional-dependencies]
+bench = [
+    { name = "matplotlib" },
+    { name = "networkx" },
     { name = "pytket" },
     { name = "qdk" },
     { name = "qiskit" },
-    { name = "xdsl" },
+]
+cudaq = [
+    { name = "cudaq" },
 ]
 
 [package.dev-dependencies]
 dev = [
     { name = "pytest" },
+    { name = "qiskit" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "cudaq", specifier = ">=0.15.0" },
-    { name = "matplotlib", specifier = ">=3.11.0" },
-    { name = "networkx", specifier = ">=3.6.1" },
-    { name = "numpy" },
-    { name = "openqasm3", extras = ["parser"] },
-    { name = "pyqir" },
-    { name = "pytket" },
-    { name = "qdk", specifier = ">=1.31.0" },
-    { name = "qiskit", specifier = ">=2.5.0" },
-    { name = "xdsl" },
+    { name = "cudaq", marker = "extra == 'cudaq'", specifier = ">=0.15,<0.16" },
+    { name = "matplotlib", marker = "extra == 'bench'", specifier = ">=3.11,<4" },
+    { name = "networkx", marker = "extra == 'bench'", specifier = ">=3.6,<4" },
+    { name = "numpy", specifier = ">=2.3,<3" },
+    { name = "openqasm3", extras = ["parser"], specifier = ">=1.0,<2" },
+    { name = "pyqir", specifier = ">=0.12,<0.13" },
+    { name = "pytket", marker = "extra == 'bench'", specifier = ">=2.18,<3" },
+    { name = "qdk", marker = "extra == 'bench'", specifier = ">=1.31,<2" },
+    { name = "qiskit", marker = "extra == 'bench'", specifier = ">=2.5,<3" },
+    { name = "xdsl", specifier = ">=0.68,<0.69" },
 ]
+provides-extras = ["cudaq", "bench"]
 
 [package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=8" }]
+dev = [
+    { name = "pytest", specifier = ">=8,<10" },
+    { name = "qiskit", specifier = ">=2.5,<3" },
+]
 
 [[package]]
 name = "qdk"

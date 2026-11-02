@@ -1,0 +1,44 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: tests (python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          python-version: ${{ matrix.python-version }}
+          version: "0.13.6"
+      - run: uv sync --frozen --group dev
+      - run: uv run pytest -q
+      - run: uv run python -m compileall -q src tests
+
+  package:
+    name: core package smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          python-version: "3.12"
+          version: "0.13.6"
+      - run: uv build
+      - run: uv venv /tmp/qcc-smoke
+      - run: uv pip install --python /tmp/qcc-smoke/bin/python dist/*.whl
+      - run: /tmp/qcc-smoke/bin/qcc compile examples/bell.qasm -O2 --target qir-base --emit qir -o /tmp/bell.ll
+      - run: grep -q __quantum__qis__cnot__body /tmp/bell.ll
