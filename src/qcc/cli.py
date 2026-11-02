@@ -17,6 +17,7 @@ from pathlib import Path
 from qcc.frontend import parse_qasm3
 from qcc.ir import extract, metrics, verify_linear
 from qcc.passes import optimize
+from qcc.target import BUILTIN_TARGETS, get_target, lower_module_to_target
 
 
 def _load(path: str):
@@ -30,6 +31,8 @@ def cmd_compile(args: argparse.Namespace) -> int:
     module = _load(args.input)
     before = extract(module)
     optimize(module, args.opt_level)
+    target = get_target(args.target)
+    lower_module_to_target(module, target)
     after = extract(module)
 
     if args.verify:
@@ -45,7 +48,15 @@ def cmd_compile(args: argparse.Namespace) -> int:
 
     if args.stats:
         print(
-            json.dumps({"before": metrics(before), "after": metrics(after)}, indent=2),
+            json.dumps(
+                {
+                    "target": target.name,
+                    "before": metrics(before),
+                    "after": metrics(after),
+                    "target_metrics": target.estimate(after).as_dict(),
+                },
+                indent=2,
+            ),
             file=sys.stderr,
         )
 
@@ -64,6 +75,18 @@ def cmd_compile(args: argparse.Namespace) -> int:
         Path(args.output).write_text(out, encoding="utf-8")
     else:
         print(out)
+    return 0
+
+
+def cmd_targets(args: argparse.Namespace) -> int:
+    del args
+    for target in BUILTIN_TARGETS.values():
+        gates = ",".join(sorted(target.native_gates))
+        topology = "all-to-all" if target.coupling is None else "fixed"
+        print(
+            f"{target.name}: entangler={target.entangler} "
+            f"topology={topology} gates={gates}"
+        )
     return 0
 
 
@@ -88,6 +111,12 @@ def main(argv: list[str] | None = None) -> int:
     c = sub.add_parser("compile", help="compile OpenQASM 3 to mlir/qir/qasm3")
     c.add_argument("input")
     c.add_argument("-O", dest="opt_level", type=int, default=1, choices=(0, 1, 2))
+    c.add_argument(
+        "--target",
+        choices=tuple(BUILTIN_TARGETS),
+        default="generic",
+        help="lower to a named native gate set (default: generic)",
+    )
     c.add_argument("--emit", choices=("mlir", "qir", "qasm3"), default="mlir")
     c.add_argument("-o", "--output")
     c.add_argument("--stats", action="store_true", help="print gate metrics to stderr")
@@ -99,6 +128,9 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("-O", dest="opt_level", type=int, default=1, choices=(0, 1, 2))
     r.add_argument("--shots", type=int, default=1000)
     r.set_defaults(fn=cmd_run)
+
+    t = sub.add_parser("targets", help="list built-in compilation targets")
+    t.set_defaults(fn=cmd_targets)
 
     args = ap.parse_args(argv)
     return args.fn(args)

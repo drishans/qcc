@@ -1,4 +1,4 @@
-# qcc — a small optimizing quantum compiler
+# qcc - a small optimizing quantum compiler
 
 The compiler behind the drishan.com field-guide series on compilers ×
 quantum. OpenQASM 3 in, optimized QIR out, executed with CUDA-Q, and
@@ -6,18 +6,18 @@ benchmarked honestly against Qiskit's transpiler and pytket.
 
 The interesting part is the middle: circuits live in an MLIR-style SSA
 dialect (built with [xDSL](https://github.com/xdslproject/xdsl)) where
-qubits are *values*, not registers — every gate consumes its qubit values
+qubits are *values*, not registers - every gate consumes its qubit values
 and produces new ones. Def-use chains then give "next gate on this wire"
 for free, no-cloning becomes a linearity rule the verifier checks, and
 every optimization is a local rewrite:
 
 ```
-OpenQASM 3 ──parse──▶ quantum dialect ──rewrites──▶ QIR (pyqir)
+OpenQASM 3 --parse--> quantum dialect --rewrites--> target lowering --> QIR
               (openqasm3 AST)   │                     │
                                 │ cancel adjoint pairs │ CUDA-Q kernel
                                 │ merge rotations      ▼
                                 │ commute-and-cancel  GPU execution
-                                │ fuse 1q runs → u3
+                                │ fuse 1q runs -> u3
                                 │ KAK 2q blocks (O2)
                                 ▼
                           verified equivalent (numpy reference sim)
@@ -26,7 +26,7 @@ OpenQASM 3 ──parse──▶ quantum dialect ──rewrites──▶ QIR (pyq
 Every optimized circuit is checked for statevector equivalence (up to
 global phase) against the unoptimized one, with a reference simulator
 that shares no code with anything being benchmarked. `tests/` also runs
-differential testing over random circuits — that suite caught every real
+differential testing over random circuits - that suite caught every real
 bug the passes ever had.
 
 ## Setup
@@ -37,10 +37,11 @@ execution wants an NVIDIA GPU but falls back to CPU simulation.
 ```bash
 # venv outside the repo if the repo lives on /mnt/c (NTFS venvs are slow)
 export UV_PROJECT_ENVIRONMENT=$HOME/.venvs/qcc
-uv sync
+uv sync --group dev                             # compiler + tests
+uv sync --extra cudaq --extra bench --group dev # full local stack
 uv run qcc compile examples/redundant.qasm -O2 --stats --verify  # include KAK
-uv run qcc compile examples/bell.qasm --emit qir              # the artifact
-uv run qcc run examples/bell.qasm --shots 2000                # CUDA-Q, GPU if present
+uv run qcc compile examples/bell.qasm --target qir-base --emit qir
+uv run qcc run examples/bell.qasm --shots 2000  # needs the cudaq extra
 ```
 
 ## Layout
@@ -51,16 +52,34 @@ uv run qcc run examples/bell.qasm --shots 2000                # CUDA-Q, GPU if p
 | `src/qcc/frontend/` | OpenQASM 3 → dialect (subset + gate-def expansion; clear errors otherwise) |
 | `src/qcc/passes/` | the optimizer: cancellation, rotation merging, commutation, 1q fusion, KAK 2q resynthesis |
 | `src/qcc/synthesis/` | independent NumPy KAK/Weyl decomposition and exact 0–3 CX synthesis |
+| `src/qcc/target.py` | native gate sets, topology, costs, durations, mobility, and basis lowering |
 | `src/qcc/backend/` | QIR emission (pyqir), CUDA-Q execution, qasm3 output, reference simulator |
 | `tests/` | unit tests + differential testing (random circuits, state equivalence) |
 | `bench/` | the harness: qcc vs Qiskit O0–O3 vs pytket on generated suites |
 | `results/` | committed benchmark JSONs, each stamped by `provenance.py` |
 
+## Compilation targets
+
+Logical optimization is target-independent. The final lowering step selects a
+native gate set and validates topology and resource metadata:
+
+```bash
+uv run qcc targets
+uv run qcc compile examples/bell.qasm -O2 --target cz --emit qasm3
+uv run qcc compile examples/bell.qasm -O2 --target qir-base --emit qir
+```
+
+Built-in targets cover the generic qcc gate set, CX-only and CZ-only
+entanglers, QIR base-profile gates, and CUDA-Q. Custom `Target` values can add a
+qubit limit, fixed directed or undirected coupling, weighted gate costs,
+durations, and mobility flags. Compilation rejects a nonadjacent interaction on
+a fixed topology until the routing milestone in `ROADMAP.md` is implemented.
+
 ## The benchmark, and what it does and doesn't claim
 
 All three compilers receive the *identical* basis-translated circuit
 (h/x/y/z/s/sdg/t/tdg/rx/ry/rz/cx/cz/swap). Qiskit runs `transpile()`
-with no backend — logical optimization only, the same game qcc plays.
+with no backend - logical optimization only, the same game qcc plays.
 pytket runs `FullPeepholeOptimise`. Timings are the median of 5 runs of
 the optimization call alone. Total gates surviving, from
 `results/compile_bench.json`:
@@ -128,9 +147,10 @@ The cross-stack check also passes: the QDK's own simulator executes qcc's
 *optimized* qasm3 output for GHZ-12 and reproduces exactly the two-string
 support (recorded in the results JSON).
 
-Reproduce with:
+Install the benchmark extra, then reproduce with:
 
 ```bash
+uv sync --extra bench
 uv run python bench/run_bench.py
 uv run python bench/qdk_compare.py
 uv run python figures.py --out /path/to/figures
