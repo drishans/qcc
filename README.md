@@ -1,164 +1,252 @@
-# qcc - a small optimizing quantum compiler
+# qcc: an optimizing quantum compiler
 
-The compiler behind the drishan.com field-guide series on compilers ×
-quantum. OpenQASM 3 in, optimized QIR out, executed with CUDA-Q, and
-benchmarked honestly against Qiskit's transpiler and pytket.
+[![CI](https://github.com/drishans/qcc/actions/workflows/ci.yml/badge.svg)](https://github.com/drishans/qcc/actions/workflows/ci.yml)
 
-The interesting part is the middle: circuits live in an MLIR-style SSA
-dialect (built with [xDSL](https://github.com/xdslproject/xdsl)) where
-qubits are *values*, not registers - every gate consumes its qubit values
-and produces new ones. Def-use chains then give "next gate on this wire"
-for free, no-cloning becomes a linearity rule the verifier checks, and
-every optimization is a local rewrite:
+**Small enough to read, complete enough to benchmark.**
 
-```
-OpenQASM 3 --parse--> quantum dialect --rewrites--> target lowering --> QIR
-              (openqasm3 AST)   │                     │
-                                │ cancel adjoint pairs │ CUDA-Q kernel
-                                │ merge rotations      ▼
-                                │ commute-and-cancel  GPU execution
-                                │ fuse 1q runs -> u3
-                                │ KAK 2q blocks (O2)
-                                ▼
-                          verified equivalent (numpy reference sim)
-```
+qcc takes an OpenQASM 3 circuit, represents qubit state as linear SSA values,
+applies verified optimizations including exact KAK two-qubit resynthesis,
+lowers to a target-native gate set, and emits QIR, OpenQASM 3, or an executable
+CUDA-Q kernel.
 
-Every optimized circuit is checked for statevector equivalence (up to
-global phase) against the unoptimized one, with a reference simulator
-that shares no code with anything being benchmarked. `tests/` also runs
-differential testing over random circuits - that suite caught every real
-bug the passes ever had.
+The project is an exploration of the compiler problems underneath a quantum
+SDK: IR design, no-cloning verification, rewrite profitability, unitary
+synthesis, target modeling, lowering, correctness oracles, and fair compiler
+benchmarks. The frontend mapping, dialect, verifier, pass pipeline, synthesis,
+target lowering, simulator, and benchmark harness all live in this repository.
 
-## Setup
+## Why qcc is interesting
 
-Runs on Linux or WSL2. The compiler itself is pure Python; CUDA-Q
-execution wants an NVIDIA GPU but falls back to CPU simulation.
+- **Qubits are SSA values.** Gates consume one logical qubit state and produce
+  the next. Def-use chains expose circuit order, and a linear-use verifier
+  turns no-cloning into a compiler invariant.
+- **Optimization is more than peepholes.** `-O1` performs cancellation,
+  rotation merging, profitable commutation, and single-qubit fusion. `-O2`
+  adds KAK/Weyl decomposition with exact 0-3 CX resynthesis.
+- **The compiler is target-aware.** A target describes native gates,
+  connectivity, gate costs, durations, qubit capacity, and mobility
+  assumptions without depending on a vendor SDK.
+- **Correctness is executable.** Optimized circuits are checked against an
+  independent NumPy statevector simulator, up to global phase, and random
+  differential tests attack the pass pipeline.
+- **The comparisons are reproducible.** Committed result files include tool
+  versions, hardware, parameters, and raw rows for qcc, Qiskit, and pytket.
+
+## Quick start
+
+Prerequisites: Linux or WSL2, Python 3.12+, and
+[`uv`](https://docs.astral.sh/uv/). CUDA-Q is optional.
 
 ```bash
-# venv outside the repo if the repo lives on /mnt/c (NTFS venvs are slow)
+git clone https://github.com/drishans/qcc.git
+cd qcc
+
+# Keeping the environment outside an NTFS-mounted repo is much faster on WSL2.
 export UV_PROJECT_ENVIRONMENT=$HOME/.venvs/qcc
-uv sync --group dev                             # compiler + tests
-uv sync --extra cudaq --extra bench --group dev # full local stack
-uv run qcc compile examples/redundant.qasm -O2 --stats --verify  # include KAK
-uv run qcc compile examples/bell.qasm --target qir-base --emit qir
-uv run qcc run examples/bell.qasm --shots 2000  # needs the cudaq extra
+uv sync --group dev
+
+# Optimize, lower to the QIR basis, verify equivalence, and emit LLVM IR.
+uv run qcc compile examples/redundant.qasm \
+  -O2 --target qir-base --emit qir --stats --verify \
+  -o /tmp/redundant.ll
 ```
 
-## Layout
+The example begins with 12 gates and finishes with a Bell-state circuit of one
+Hadamard and one entangler. `--verify` independently checks that the rewrite
+preserved the circuit unitary.
 
-| Path | What it is |
-| --- | --- |
-| `src/qcc/ir/` | the dialect: qubit type, gate ops, linearity verifier, metrics |
-| `src/qcc/frontend/` | OpenQASM 3 → dialect (subset + gate-def expansion; clear errors otherwise) |
-| `src/qcc/passes/` | the optimizer: cancellation, rotation merging, commutation, 1q fusion, KAK 2q resynthesis |
-| `src/qcc/synthesis/` | independent NumPy KAK/Weyl decomposition and exact 0–3 CX synthesis |
-| `src/qcc/target.py` | native gate sets, topology, costs, durations, mobility, and basis lowering |
-| `src/qcc/backend/` | QIR emission (pyqir), CUDA-Q execution, qasm3 output, reference simulator |
-| `tests/` | unit tests + differential testing (random circuits, state equivalence) |
-| `bench/` | the harness: qcc vs Qiskit O0–O3 vs pytket on generated suites |
-| `results/` | committed benchmark JSONs, each stamped by `provenance.py` |
-
-## Compilation targets
-
-Logical optimization is target-independent. The final lowering step selects a
-native gate set and validates topology and resource metadata:
+Explore the target model or inspect target-native OpenQASM:
 
 ```bash
 uv run qcc targets
 uv run qcc compile examples/bell.qasm -O2 --target cz --emit qasm3
-uv run qcc compile examples/bell.qasm -O2 --target qir-base --emit qir
 ```
 
-Built-in targets cover the generic qcc gate set, CX-only and CZ-only
-entanglers, QIR base-profile gates, and CUDA-Q. Custom `Target` values can add a
-qubit limit, fixed directed or undirected coupling, weighted gate costs,
-durations, and mobility flags. Compilation rejects a nonadjacent interaction on
-a fixed topology until the routing milestone in `ROADMAP.md` is implemented.
-
-## The benchmark, and what it does and doesn't claim
-
-All three compilers receive the *identical* basis-translated circuit
-(h/x/y/z/s/sdg/t/tdg/rx/ry/rz/cx/cz/swap). Qiskit runs `transpile()`
-with no backend - logical optimization only, the same game qcc plays.
-pytket runs `FullPeepholeOptimise`. Timings are the median of 5 runs of
-the optimization call alone. Total gates surviving, from
-`results/compile_bench.json`:
-
-| suite | input | qcc -O1 | qcc -O2 | qiskit O1 | qiskit O2/O3 | tket |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| ghz n12 | 12 | 12 | 12 | 12 | 12 | 12 |
-| qft n6 | 84 | 68 | 68 | 74 | 61 | 61 |
-| qft n10 | 240 | 194 | 194 | 222 | 181 | 181 |
-| qaoa n12 p2 (s11) | 144 | 135 | 135 | 144 | 144 | 138 |
-| qaoa n12 p2 (s12) | 144 | 134 | 134 | 144 | 144 | 140 |
-| clifford+T n8 (s1) | 400 | **201** | 204 | 251 | 216 | 210 |
-| clifford+T n8 (s2) | 400 | **178** | 181 | 218 | 198 | 191 |
-| clifford+T n8 (s3) | 400 | 205 | **203** | 250 | 220 | 219 |
-| vqe su2 n10 r3 | 267 | **67** | **67** | 67 | 67 | 91 |
-| adder b4 | 137 | **125** | **125** | 129 | 129 | 132 |
-
-O2 adds pair-block collection and KAK resynthesis. Across the suite it leaves
-total two-qubit count at 704, one gate from qiskit O2/O3's 703, while retaining
-the lower total-gate count (1323 vs 1372). On all three random Clifford+T seeds
-it beats qiskit O2's entangler count: 118 vs 119, 97 vs 101, and 114 vs 116.
-The trade is more local gates on two seeds because the acceptance order values
-2q gates first. Median optimization time is 28.5 ms for qcc O2, 12.4 ms for
-qiskit O2, and 344.7 ms for pytket.
-
-The honest remaining gap is broader circuit restructuring. QFT's final swaps
-and one-off controlled phases do not form profitable same-pair KAK blocks, so
-O2 leaves both QFT rows unchanged; pytket still reaches 634 two-qubit gates in
-aggregate by applying a wider repertoire of transforms.
-
-## And the Q# stack?
-
-Microsoft's QDK is a different kind of tool and gets its own comparison
-(`bench/qdk_compare.py`, results in `results/qdk_qir_compare.json`): it is a
-language frontend that lowers Q#/OpenQASM 3 to QIR and by design leaves
-gate-level optimization to whatever consumes the QIR. Measured, that's
-exactly what it does: on 8 of 10 suites the QDK's base-profile QIR is
-instruction-for-instruction the size of *unoptimized* qcc (`-O0`); the two
-QFT rows differ only because the QDK keeps a native `swap` intrinsic while
-qcc's pyqir emission expands swap into 3 cx.
-
-QIR instructions emitted for the same OpenQASM 3 (measures excluded;
-timings are the median source→QIR compile):
-
-| suite | QDK (base) | qcc -O0 | qcc -O1 |
-| --- | ---: | ---: | ---: |
-| ghz n12 | 12 | 12 | 12 |
-| qft n6 | 84 | 90 | **80** |
-| qft n10 | 240 | 250 | **214** |
-| qaoa n12 p2 (a/b) | 144 | 144 | 153 / 154 |
-| clifford+T n8 (a/b/c) | 320 / 305 / 307 | same | **226 / 218 / 244** |
-| vqe su2 n10 r3 | 267 | 267 | **130** |
-| adder b4 | 113 | 113 | **109** |
-
-Median compile time: QDK 84 ms, qcc 33 ms end-to-end. The QAOA rows show a
-metric artifact worth understanding rather than papering over: fusion
-coarsens pairs of cheap 1q gates into u3, and base-profile QIR has no
-generic-1q intrinsic, so a 3-angle u3 re-expands to three rotations. Every
-optimizing compiler makes this trade (qiskit's `u`, tket's TK1); the
-2q count, which dominates hardware cost, is unchanged, and near-zero ZYZ
-angles are elided at emission so a u3 that is really one rotation costs
-one instruction.
-
-The cross-stack check also passes: the QDK's own simulator executes qcc's
-*optimized* qasm3 output for GHZ-12 and reproduces exactly the two-string
-support (recorded in the results JSON).
-
-Install the benchmark extra, then reproduce with:
+To execute through CUDA-Q:
 
 ```bash
-uv sync --extra bench
-uv run python bench/run_bench.py
-uv run python bench/qdk_compare.py
-uv run python figures.py --out /path/to/figures
+uv sync --extra cudaq --group dev
+uv run qcc run examples/bell.qasm --shots 2000
 ```
+
+CUDA-Q uses an NVIDIA GPU when a supported target is available and otherwise
+can run with its CPU simulator.
+
+## Compiler architecture
+
+```text
+OpenQASM 3
+    |
+    v
+openqasm3 AST
+    |
+    v
+qcc SSA dialect  -->  linearity verifier
+    |
+    +--> -O1 local rewrites
+    +--> -O2 KAK two-qubit resynthesis
+    |
+    v
+target-native lowering  -->  gate set, topology, costs, durations
+    |
+    +--> QIR via pyqir
+    +--> OpenQASM 3
+    +--> CUDA-Q execution
+```
+
+### Qubits as linear SSA values
+
+A Bell circuit in qcc's textual IR looks like this:
+
+```mlir
+%0 = qcc.alloc 0 : i64
+%1 = qcc.alloc 1 : i64
+%2 = qcc.h %0
+%3, %4 = qcc.cx %2, %1
+```
+
+`%0` and `%2` are successive logical states of the same qubit, not two
+physical qubits. Once `%0` is consumed by `qcc.h`, using it again is invalid.
+This representation makes next-on-wire relationships ordinary SSA use-def
+relationships and lets the verifier reject accidental fan-out.
+
+The dialect is built with
+[`xDSL`](https://github.com/xdslproject/xdsl), which provides MLIR-style
+operations, regions, verification, and rewrite infrastructure in Python. The
+choice keeps the compiler inspectable and fast to evolve. The roadmap records
+measured triggers for moving to native LLVM MLIR if interoperability or pass
+performance eventually requires it.
+
+### Optimization levels
+
+| Level | Pipeline |
+| --- | --- |
+| `-O0` | Parse and verify with no logical optimization |
+| `-O1` | Cancel inverses, merge rotations, commute diagonal gates when it pays, clean up, and fuse maximal single-qubit runs into `u3` |
+| `-O2` | Run `-O1`, resynthesize profitable same-pair two-qubit blocks with KAK, then repeat cleanup to a fixpoint |
+
+The KAK pass collects a maximal block acting on one qubit pair, computes its
+unitary, maps it into the Weyl chamber, and synthesizes an exact circuit using
+the minimal 0-3 CX class for that interaction. A candidate is accepted only
+when it strictly improves the lexicographic cost `(two-qubit gates, total
+gates)`, so canonicalization cannot silently make the expensive metric worse.
+
+### Targets and lowering
+
+Built-in targets cover the full logical gate set, CX-native and CZ-native
+bases, the QIR base profile, and CUDA-Q. A custom `Target` can specify:
+
+- native one- and two-qubit gates;
+- all-to-all, directed, or undirected connectivity;
+- qubit capacity;
+- weighted gate costs and durations;
+- movable-qubit and movable-interaction assumptions.
+
+Target lowering happens after logical optimization. A fixed topology currently
+rejects nonadjacent interactions with a clear routing error. Placement and
+SWAP routing are intentionally the next compiler layer, not behavior hidden in
+the target model.
+
+## Measured against Qiskit and pytket
+
+The benchmark asks a narrow, useful question: how well does each compiler
+optimize the same logical circuit before hardware placement and routing?
+
+Each tool receives an identical basis-translated input. Qiskit runs
+`transpile()` without a backend or coupling map, pytket runs
+`FullPeepholeOptimise`, and qcc runs its own pass pipeline. Timings are the
+median of five optimization calls. qcc outputs up to 12 qubits are checked for
+statevector equivalence against the unoptimized input.
+
+Selected total unitary gate counts from the committed baseline:
+
+| Circuit | Input | qcc `-O2` | Qiskit O2 | pytket |
+| --- | ---: | ---: | ---: | ---: |
+| GHZ, 12 qubits | 12 | 12 | 12 | 12 |
+| QFT, 10 qubits | 240 | 194 | **181** | **181** |
+| Clifford+T, seed 1 | 400 | **204** | 216 | 210 |
+| Clifford+T, seed 2 | 400 | **181** | 198 | 191 |
+| Clifford+T, seed 3 | 400 | **203** | 220 | 219 |
+| VQE SU2, 10 qubits | 267 | **67** | **67** | 91 |
+| Adder, 4 bits | 137 | **125** | 129 | 132 |
+
+Across all ten suites, qcc `-O2` leaves 1,323 total gates versus 1,372 for
+Qiskit O2, while its two-qubit count is 704 versus Qiskit's 703. On all three
+random Clifford+T instances, qcc produces fewer two-qubit gates than Qiskit O2.
+Median optimization time is 28.5 ms for qcc `-O2`, 12.4 ms for Qiskit O2, and
+344.7 ms for pytket in this baseline.
+
+The misses matter too. QFT exposes qcc's current lack of broader circuit
+restructuring: final swaps and isolated controlled phases do not form
+profitable same-pair KAK blocks, so Qiskit and pytket win those rows. This is a
+compiler-pass comparison, not a claim that qcc yet replaces hardware-aware
+production transpilation.
+
+The full data and provenance are in
+[`results/compile_bench.json`](results/compile_bench.json). Reproduce them with:
+
+```bash
+uv sync --extra bench --group dev
+uv run python bench/run_bench.py
+uv run python figures.py --out /tmp/qcc-figures
+```
+
+## Correctness and interoperability
+
+qcc uses several independent checks rather than trusting a pass because its
+output looks smaller:
+
+- xDSL structural verification and qcc's linear qubit-use verifier run after
+  compilation;
+- a separate NumPy statevector simulator checks equivalence up to global
+  phase;
+- randomized circuits exercise combinations that hand-written examples miss;
+- CI tests Python 3.12 and 3.13 and installs the built wheel in an isolated
+  environment;
+- optional CUDA-Q tests compare execution against the reference simulator.
+
+For interoperability, qcc emits QIR through `pyqir`, round-trippable OpenQASM
+3, and CUDA-Q kernels. The repository also retains a compact Microsoft QDK/Q#
+comparison as a cross-stack QIR check, not as an optimizer contest.
+[`bench/qdk_compare.py`](bench/qdk_compare.py) records source-to-QIR size and
+timing, and verifies that the QDK simulator can execute qcc's optimized output.
+Its raw results live in
+[`results/qdk_qir_compare.json`](results/qdk_qir_compare.json).
+
+## Scope and roadmap
+
+qcc is a working research compiler, not a drop-in production transpiler. It
+currently focuses on a deliberately scoped OpenQASM 3 gate-level frontend,
+logical optimization, native-basis lowering, QIR emission, and local
+execution. Unsupported language features fail explicitly.
+
+The next milestones are physical placement and routing, structured pass
+diagnostics, and a measured decision on native MLIR. Neutral-atom movement and
+scheduling, where NAKO-style metrics become useful, follow after qcc can emit a
+physical placement witness. See [`ROADMAP.md`](ROADMAP.md) for the concrete
+criteria.
+
+## Repository map
+
+| Path | Responsibility |
+| --- | --- |
+| `src/qcc/frontend/` | OpenQASM 3 AST to qcc dialect, including gate-definition expansion |
+| `src/qcc/ir/` | Quantum operations, qubit type, builders, tape view, metrics, and linearity verification |
+| `src/qcc/passes/` | Cancellation, rotation merging, commutation, single-qubit fusion, and KAK resynthesis |
+| `src/qcc/synthesis/` | KAK/Weyl decomposition and exact 0-3 CX synthesis |
+| `src/qcc/target.py` | Native gates, topology, resource metadata, and basis lowering |
+| `src/qcc/backend/` | QIR, OpenQASM 3, CUDA-Q, and the independent statevector simulator |
+| `tests/` | Unit, differential, backend, target, and synthesis tests |
+| `bench/` | Qiskit, pytket, and QDK comparison harnesses |
+| `results/` | Versioned benchmark outputs with provenance |
+
+The companion
+[*Building a Quantum Compiler*](https://drishan.com/series/building-a-quantum-compiler/)
+field guide explains the IR, verifier, passes, backends, and benchmark design
+step by step.
 
 ## License
 
-Original qcc code is MIT. The simultaneous-diagonalization routine used by
-the KAK decomposition is adapted from Cirq 1.6.1 under Apache-2.0; see
-`NOTICE` and `LICENSES/Apache-2.0.txt`. The prose of the tutorial series is
-CC BY 4.0 on the site.
+Original qcc code is MIT. The simultaneous-diagonalization routine used by the
+KAK decomposition is adapted from Cirq 1.6.1 under Apache-2.0. See `NOTICE` and
+`LICENSES/Apache-2.0.txt`.
